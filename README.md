@@ -65,8 +65,8 @@ floatout = fftf_malloc(N2sizeof(float));
 
 // Obtain the calculation plan (instance)
 FFTFInstanceinstance = fftf_init(FFTF_TYPE_COMPLEX, FFTF_DIRECTION_FORWARD,
-                                   FFTF_DIMENSION_1D, N, FFTF_NO_OPTIONS,
-                                   in, out);
+                                 FFTF_DIMENSION_1D, N, FFTF_NO_OPTIONS,
+                                 in, out);
 
 // Calculate the forward 1-dimensional complex FFT
 fftf_calc(instance);
