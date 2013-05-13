@@ -1,7 +1,7 @@
 Fast Fourier Transform Frontend
 ===============================
 
-This library puts various Fast Fourier Transform implementations (built-in and third-party) under a single interface. Supported backends are:
+This library puts various Fast Fourier Transform implementations (built-in and third party) under a single interface. Supported backends are:
 * KissFFT
 * Ooura FFT
 * libavcodec
@@ -12,7 +12,7 @@ This library puts various Fast Fourier Transform implementations (built-in and t
 * AMD OpenCL
 * ViennaCL
 
-Refer to Doxygen documentation for details. FFTF uses [SEAPT](https://github.com/vmarkovtsev/SEAPT) build system.
+Refer to Doxygen documentation for details. FFTF uses [SEAPT](https://github.com/vmarkovtsev/SEAPT) build system, so is compiled on UNIX systems only.
 
 Installation
 ------------
