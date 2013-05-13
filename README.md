@@ -64,7 +64,7 @@ fill_with_numbers(in, N);
 floatout = fftf_malloc(N2sizeof(float));
 
 // Obtain the calculation plan (instance)
-FFTFInstanceinstance = fftf_init(FFTF_TYPE_COMPLEX, FFTF_DIRECTION_FORWARD,
+FFTFInstance instance = fftf_init(FFTF_TYPE_COMPLEX, FFTF_DIRECTION_FORWARD,
                                  FFTF_DIMENSION_1D, N, FFTF_NO_OPTIONS,
                                  in, out);
 
