@@ -87,17 +87,14 @@ typedef struct {
   int init_successful;
 } cuFftInstance;
 
-static size_t calc_buffer_size(const FFTFInstance *instance, int input) {
+static size_t calc_buffer_size(const FFTFInstance *instance) {
   int length = 0;
   for (int i = 0; i < (int)instance->dimension; i++) {
     length += instance->lengths[i];
   }
   size_t res  = length * sizeof(float);
   if (instance->type == FFTF_TYPE_REAL) {
-    if ((instance->direction == FFTF_DIRECTION_BACKWARD && input) ||
-        (instance->direction == FFTF_DIRECTION_FORWARD && !input)) {
-      res += 2 * sizeof(float);
-    }
+    res += 2 * sizeof(float);
   } else {
     res *= 2;
   }
@@ -113,15 +110,15 @@ static int init_data_buffers(const FFTFInstance *instance) {
   data->zerocopy = zerocopy;
 
   size_t inSize;
-  if (instance->batchSize == 1) {
-    inSize = calc_buffer_size(instance, 1);
+  if (instance->batchSize == 1 || !data->zerocopy) {
+    inSize = calc_buffer_size(instance);
   } else {
     inSize = instance->inputs[1] - instance->inputs[0];
     inSize *= sizeof(float);
   }
   size_t outSize;
-  if (instance->batchSize == 1) {
-    outSize = calc_buffer_size(instance, 0);
+  if (instance->batchSize == 1 || !data->zerocopy) {
+    outSize = calc_buffer_size(instance);
   } else {
     outSize = instance->outputs[1] - instance->outputs[0];
     outSize *= sizeof(float);
@@ -179,9 +176,9 @@ void init_many_cufft(void *engineInternalData, FFTFInstance *instance) {
   cufftType cufft_type = fftf_instance_to_cufft_type(instance);
   if (instance->batchSize > 1 && data->zerocopy) {
     int inDist = instance->inputs[1] - instance->inputs[0];
-    assert(inDist * sizeof(float) >= calc_buffer_size(instance, 1));
+    assert(inDist * sizeof(float) >= calc_buffer_size(instance));
     int outDist = instance->outputs[1] - instance->outputs[0];
-    assert(outDist * sizeof(float) >= calc_buffer_size(instance, 0));
+    assert(outDist * sizeof(float) >= calc_buffer_size(instance));
     if (instance->type == FFTF_TYPE_COMPLEX) {
       inDist /= 2;
       outDist /= 2;
@@ -211,7 +208,7 @@ static void data_in(const FFTFInstance *instance) {
   cuFftInstance *data = (cuFftInstance *)instance->internalData;
 
   if (!data->zerocopy) {
-    size_t eachBufferSize = calc_buffer_size(instance, 1);
+    size_t eachBufferSize = calc_buffer_size(instance);
     for (int i = 0; i < instance->batchSize; i++) {
       CUDA_CHECKED_RETURN(cudaMemcpy(
           (char *)data->inputs + i * eachBufferSize,
@@ -225,7 +222,7 @@ static void data_out(const FFTFInstance *instance) {
   cuFftInstance *data = (cuFftInstance *)instance->internalData;
 
   if (!data->zerocopy) {
-    size_t eachBufferSize = calc_buffer_size(instance, 0);
+    size_t eachBufferSize = calc_buffer_size(instance);
     for (int i = 0; i < instance->batchSize; i++) {
       CUDA_CHECKED_RETURN(cudaMemcpy(
           instance->outputs[i],
