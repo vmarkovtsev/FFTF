@@ -322,7 +322,9 @@ FFTFInstance *backend_init(FFTFBackendId id, FFTFType type,
   instance->batchSize = batchSize;
   instance->inputs = malloc(ptr_table_size);
   memcpy((const float **)instance->inputs, inputs, ptr_table_size);
-  instance->lengths = lengths;
+  size_t lengths_size = sizeof(*lengths) * dimension;
+  instance->lengths = malloc(lengths_size);
+  memcpy((int *)instance->lengths, lengths, lengths_size);
   instance->direction = direction;
   instance->options = options;
   instance->outputs = malloc(ptr_table_size);
@@ -398,6 +400,7 @@ void backend_destroy(FFTFInstance *instance) {
   }
   free((const float **)instance->inputs);
   free((const float **)instance->outputs);
+  free((int *)instance->lengths);
   instance->id = FFTF_BACKEND_NONE;
   pthread_mutex_unlock(&instance->lock);
   // Give a chance for any pending fftf_calc() to assert.
