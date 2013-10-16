@@ -17,6 +17,8 @@
 
 bool fatalError = false;
 
+#ifndef NO_SET_BACKEND
+
 TEST(NAME, SetBackend) {
 #ifdef LD_LIBRARY_PATH
   const char* paths[2] = { LD_LIBRARY_PATH, NULL };
@@ -35,10 +37,24 @@ TEST(NAME, SetBackend) {
   atexit(fftf_cleanup);
 }
 
+#endif
+
+bool set_backend(FFTFBackendId backend
+#ifdef NO_SET_BACKEND
+                 __attribute__((unused))
+#endif
+                 ) {
+#ifndef NO_SET_BACKEND
+  fftf_set_backend(backend);
+  return fftf_current_backend() == backend;
+#else
+  return true;
+#endif
+}
+
 TEST(NAME, ComplexForward) {
   ASSERT_FALSE(fatalError);
-  fftf_set_backend(BACKEND);
-  ASSERT_EQ(BACKEND, fftf_current_backend());
+  ASSERT_TRUE(set_backend(BACKEND));
   TestEnv te(FFTF_DIRECTION_FORWARD, FFTF_TYPE_COMPLEX);
   auto handle = fftf_init(FFTF_TYPE_COMPLEX, FFTF_DIRECTION_FORWARD,
                           FFTF_DIMENSION_1D, te.N(), FFTF_NO_OPTIONS,
@@ -50,8 +66,7 @@ TEST(NAME, ComplexForward) {
 
 TEST(NAME, ComplexBackward) {
   ASSERT_FALSE(fatalError);
-  fftf_set_backend(BACKEND);
-  ASSERT_EQ(BACKEND, fftf_current_backend());
+  ASSERT_TRUE(set_backend(BACKEND));
   TestEnv te(FFTF_DIRECTION_BACKWARD, FFTF_TYPE_COMPLEX);
   auto handle = fftf_init(FFTF_TYPE_COMPLEX, FFTF_DIRECTION_BACKWARD,
                           FFTF_DIMENSION_1D, te.N(), FFTF_NO_OPTIONS,
@@ -63,8 +78,7 @@ TEST(NAME, ComplexBackward) {
 
 TEST(NAME, ComplexForwardBatch) {
   ASSERT_FALSE(fatalError);
-  fftf_set_backend(BACKEND);
-  ASSERT_EQ(BACKEND, fftf_current_backend());
+  ASSERT_TRUE(set_backend(BACKEND));
   TestEnv te(FFTF_DIRECTION_FORWARD, FFTF_TYPE_COMPLEX, false, 100);
   auto handle = fftf_init_batch(FFTF_TYPE_COMPLEX, FFTF_DIRECTION_FORWARD,
                                 FFTF_DIMENSION_1D, te.N(), FFTF_NO_OPTIONS,
@@ -76,8 +90,7 @@ TEST(NAME, ComplexForwardBatch) {
 
 TEST(NAME, ComplexForwardBackwardIdentity) {
   ASSERT_FALSE(fatalError);
-  fftf_set_backend(BACKEND);
-  ASSERT_EQ(BACKEND, fftf_current_backend());
+  ASSERT_TRUE(set_backend(BACKEND));
 
   TestEnv te(FFTF_DIRECTION_FORWARD, FFTF_TYPE_COMPLEX);
   auto handle = fftf_init(FFTF_TYPE_COMPLEX, FFTF_DIRECTION_FORWARD,
@@ -106,8 +119,7 @@ TEST(NAME, ComplexForwardBackwardIdentity) {
 #ifndef NO_REAL
 TEST(NAME, RealForward) {
   ASSERT_FALSE(fatalError);
-  fftf_set_backend(BACKEND);
-  ASSERT_EQ(BACKEND, fftf_current_backend());
+  ASSERT_TRUE(set_backend(BACKEND));
   TestEnv te(FFTF_DIRECTION_FORWARD, FFTF_TYPE_REAL);
   auto handle = fftf_init(FFTF_TYPE_REAL, FFTF_DIRECTION_FORWARD,
                           FFTF_DIMENSION_1D, te.N(), FFTF_NO_OPTIONS,
@@ -119,8 +131,7 @@ TEST(NAME, RealForward) {
 
 TEST(NAME, RealBackward) {
   ASSERT_FALSE(fatalError);
-  fftf_set_backend(BACKEND);
-  ASSERT_EQ(BACKEND, fftf_current_backend());
+  ASSERT_TRUE(set_backend(BACKEND));
   TestEnv te(FFTF_DIRECTION_BACKWARD, FFTF_TYPE_REAL);
   auto handle = fftf_init(FFTF_TYPE_REAL, FFTF_DIRECTION_BACKWARD,
                           FFTF_DIMENSION_1D, te.N(), FFTF_NO_OPTIONS,
@@ -132,8 +143,7 @@ TEST(NAME, RealBackward) {
 
 TEST(NAME, RealForwardBackwardIdentity) {
   ASSERT_FALSE(fatalError);
-  fftf_set_backend(BACKEND);
-  ASSERT_EQ(BACKEND, fftf_current_backend());
+  ASSERT_TRUE(set_backend(BACKEND));
 
   TestEnv te(FFTF_DIRECTION_FORWARD, FFTF_TYPE_REAL);
   auto handle = fftf_init(FFTF_TYPE_REAL, FFTF_DIRECTION_FORWARD,
@@ -155,13 +165,30 @@ TEST(NAME, RealForwardBackwardIdentity) {
   }
   ASSERT_GT(1E-8, error);
 }
+/*
+TEST(NAME, RealForwardBatchInplace) {
+  ASSERT_FALSE(fatalError);
+  ASSERT_TRUE(set_backend(BACKEND));
+  TestEnv te(FFTF_DIRECTION_FORWARD, FFTF_TYPE_REAL, true, 100);
+  auto handle = fftf_init_batch(FFTF_TYPE_COMPLEX, FFTF_DIRECTION_FORWARD,
+                                FFTF_DIMENSION_1D, te.N(), FFTF_NO_OPTIONS,
+                                100, te.inputs(), te.outputs());
+  fftf_calc(handle);
+  fftf_destroy(handle);
+  ASSERT_EQ(kVerificationResultOk, te.Verify());
+  for (int i = 0; i < 99; i++) {
+    ASSERT_EQ(0, memcmp(te.outputs()[i], te.outputs()[i + 1],
+                        (*te.N() + 2) * sizeof(float)));
+  }
+  exit(0);
+}
+*/
 #endif
 
 #ifndef DCT_TESTS
 TEST(NAME, DCTAssertion) {
   ASSERT_FALSE(fatalError);
-  fftf_set_backend(BACKEND);
-  ASSERT_EQ(BACKEND, fftf_current_backend());
+  ASSERT_TRUE(set_backend(BACKEND));
   TestEnv te(FFTF_DIRECTION_FORWARD, FFTF_TYPE_DCT);
   // There are problems with stderr redirection otherwise
   // ::testing::FLAGS_gtest_death_test_style = "threadsafe";
@@ -181,8 +208,7 @@ TEST(NAME, DCTAssertion) {
 #else
 TEST(NAME, DCTForward) {
   ASSERT_FALSE(fatalError);
-  fftf_set_backend(BACKEND);
-  ASSERT_EQ(BACKEND, fftf_current_backend());
+  ASSERT_TRUE(set_backend(BACKEND));
   TestEnv te(FFTF_DIRECTION_FORWARD, FFTF_TYPE_DCT);
   auto handle = fftf_init(FFTF_TYPE_DCT, FFTF_DIRECTION_FORWARD,
                           FFTF_DIMENSION_1D, te.N(), FFTF_NO_OPTIONS,
@@ -194,8 +220,7 @@ TEST(NAME, DCTForward) {
 
 TEST(NAME, DCTBackward) {
   ASSERT_FALSE(fatalError);
-  fftf_set_backend(BACKEND);
-  ASSERT_EQ(BACKEND, fftf_current_backend());
+  ASSERT_TRUE(set_backend(BACKEND));
   TestEnv te(FFTF_DIRECTION_BACKWARD, FFTF_TYPE_DCT);
   auto handle = fftf_init(FFTF_TYPE_DCT, FFTF_DIRECTION_BACKWARD,
                           FFTF_DIMENSION_1D, te.N(), FFTF_NO_OPTIONS,
@@ -207,8 +232,7 @@ TEST(NAME, DCTBackward) {
 
 TEST(NAME, DCTForwardBackwardIdentity) {
   ASSERT_FALSE(fatalError);
-  fftf_set_backend(BACKEND);
-  ASSERT_EQ(BACKEND, fftf_current_backend());
+  ASSERT_TRUE(set_backend(BACKEND));
 
   TestEnv te(FFTF_DIRECTION_FORWARD, FFTF_TYPE_DCT);
   auto handle = fftf_init(FFTF_TYPE_DCT, FFTF_DIRECTION_FORWARD,
@@ -234,8 +258,7 @@ TEST(NAME, DCTForwardBackwardIdentity) {
 #ifdef INPLACE
 TEST(NAME, DCTForwardInplace) {
   ASSERT_FALSE(fatalError);
-  fftf_set_backend(BACKEND);
-  ASSERT_EQ(BACKEND, fftf_current_backend());
+  ASSERT_TRUE(set_backend(BACKEND));
   TestEnv te(FFTF_DIRECTION_FORWARD, FFTF_TYPE_DCT, true);
   auto handle = fftf_init(FFTF_TYPE_DCT, FFTF_DIRECTION_FORWARD,
                           FFTF_DIMENSION_1D, te.N(), FFTF_NO_OPTIONS,
@@ -250,8 +273,7 @@ TEST(NAME, DCTForwardInplace) {
 #ifdef INPLACE
 TEST(NAME, InplaceComplexForward) {
   ASSERT_FALSE(fatalError);
-  fftf_set_backend(BACKEND);
-  ASSERT_EQ(BACKEND, fftf_current_backend());
+  ASSERT_TRUE(set_backend(BACKEND));
   TestEnv te(FFTF_DIRECTION_FORWARD, FFTF_TYPE_COMPLEX, true);
   auto handle = fftf_init(FFTF_TYPE_COMPLEX, FFTF_DIRECTION_FORWARD,
                           FFTF_DIMENSION_1D, te.N(), FFTF_NO_OPTIONS,
@@ -263,8 +285,7 @@ TEST(NAME, InplaceComplexForward) {
 
 TEST(NAME, InplaceComplexBackward) {
   ASSERT_FALSE(fatalError);
-  fftf_set_backend(BACKEND);
-  ASSERT_EQ(BACKEND, fftf_current_backend());
+  ASSERT_TRUE(set_backend(BACKEND));
   TestEnv te(FFTF_DIRECTION_BACKWARD, FFTF_TYPE_COMPLEX, true);
   auto handle = fftf_init(FFTF_TYPE_COMPLEX, FFTF_DIRECTION_BACKWARD,
                           FFTF_DIMENSION_1D, te.N(), FFTF_NO_OPTIONS,
@@ -276,8 +297,7 @@ TEST(NAME, InplaceComplexBackward) {
 
 TEST(NAME, ComplexForwardBatchInplace) {
   ASSERT_FALSE(fatalError);
-  fftf_set_backend(BACKEND);
-  ASSERT_EQ(BACKEND, fftf_current_backend());
+  ASSERT_TRUE(set_backend(BACKEND));
   TestEnv te(FFTF_DIRECTION_FORWARD, FFTF_TYPE_COMPLEX, true, 100);
   auto handle = fftf_init_batch(FFTF_TYPE_COMPLEX, FFTF_DIRECTION_FORWARD,
                                 FFTF_DIMENSION_1D, te.N(), FFTF_NO_OPTIONS,
@@ -285,6 +305,44 @@ TEST(NAME, ComplexForwardBatchInplace) {
   fftf_calc(handle);
   fftf_destroy(handle);
   ASSERT_EQ(kVerificationResultOk, te.Verify());
+}
+
+TEST(NAME, ComplexForwardMultipleHandles) {
+  ASSERT_FALSE(fatalError);
+  ASSERT_TRUE(set_backend(BACKEND));
+  TestEnv te(FFTF_DIRECTION_FORWARD, FFTF_TYPE_COMPLEX);
+  auto handle1 = fftf_init(FFTF_TYPE_COMPLEX, FFTF_DIRECTION_FORWARD,
+                           FFTF_DIMENSION_1D, te.N(), FFTF_NO_OPTIONS,
+                           te.input(), te.output());
+  auto handle2 = fftf_init(FFTF_TYPE_COMPLEX, FFTF_DIRECTION_FORWARD,
+                           FFTF_DIMENSION_1D, te.N(), FFTF_NO_OPTIONS,
+                           te.input(), te.output());
+  TestEnv te2(FFTF_DIRECTION_FORWARD, FFTF_TYPE_COMPLEX, true, 100);
+  auto handle3 = fftf_init_batch(FFTF_TYPE_COMPLEX, FFTF_DIRECTION_FORWARD,
+                                 FFTF_DIMENSION_1D, te2.N(), FFTF_NO_OPTIONS,
+                                 100, te2.inputs(), te2.outputs());
+#ifndef NO_REAL
+  TestEnv te3(FFTF_DIRECTION_BACKWARD, FFTF_TYPE_REAL);
+  auto handle4 = fftf_init(FFTF_TYPE_REAL, FFTF_DIRECTION_BACKWARD,
+                           FFTF_DIMENSION_1D, te3.N(), FFTF_NO_OPTIONS,
+                           te3.input(), te3.output());
+#endif
+  fftf_calc(handle3);
+  ASSERT_EQ(kVerificationResultOk, te2.Verify());
+  fftf_calc(handle1);
+  ASSERT_EQ(kVerificationResultOk, te.Verify());
+  fftf_calc(handle2);
+  ASSERT_EQ(kVerificationResultOk, te.Verify());
+#ifndef NO_REAL
+  fftf_calc(handle4);
+  ASSERT_EQ(kVerificationResultOk, te3.Verify());
+#endif
+  fftf_destroy(handle1);
+  fftf_destroy(handle2);
+  fftf_destroy(handle3);
+#ifndef NO_REAL
+  fftf_destroy(handle4);
+#endif
 }
 #endif
 

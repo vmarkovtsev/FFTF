@@ -36,6 +36,7 @@
  *  @section Copyright
  *  Copyright 2013 Samsung R&D Institute Russia
  */
+#ifndef __arm__
 
 #include "src/engine_ipp.h"
 #include <assert.h>
@@ -435,3 +436,5 @@ void free_ipp(void *engineInternalData, void *ptr) {
   LibIPP *ipp = (LibIPP *)engineInternalData;
   ipp->ippFree(ptr);
 }
+
+#endif  // #ifndef __arm__

@@ -122,7 +122,9 @@ extern "C" {
 #define MALLOC __attribute__ ((__malloc__))
 
 /* Mark pointer parameters which must not be NULL */
+#ifndef NOTNULL
 #define NOTNULL(...) __attribute__ ((__nonnull__ (__VA_ARGS__)))
+#endif
 
 /* warn about unused result function attribute */
 #define WARN_UNUSED_RESULT __attribute__ ((__warn_unused_result__))
@@ -148,12 +150,14 @@ typedef enum {
 #endif
   /// @brief Libavcodec FFT (http://libav.org) backend.
   FFTF_BACKEND_LIBAV,
+#ifndef __arm__
   /// @brief Intel Math Kernel Libraries
   /// (http://software.intel.com/en-us/intel-mkl) backend.
   FFTF_BACKEND_IMKL,
   /// @brief Intel Integrated Performance Primitives
   /// (http://software.intel.com/en-us/intel-ipp) backend.
   FFTF_BACKEND_IIPP,
+#endif
 #ifdef CUDA
   /// @brief Nvidia cuFFT (https://developer.nvidia.com/cufft) backend.
   FFTF_BACKEND_CUFFT,
@@ -426,6 +430,16 @@ void *fftf_malloc(size_t size) MALLOC;
 /// @note fftf_free() is not compatible with malloc()! Use
 /// fftf_malloc() instead.
 void fftf_free(void *ptr);
+
+/// @brief Gets the maximal number of OpenMP threads in batch mode for backends
+/// without the explicit batch support.
+/// @return value A positive number.
+int fftf_get_openmp_num_threads();
+
+/// @brief Sets the maximal number of OpenMP threads in batch mode for backends
+/// without the explicit batch support.
+/// @param value A positive number.
+void fftf_set_openmp_num_threads(int value);
 
 #if __GNUC__ >= 4
 #pragma GCC visibility pop

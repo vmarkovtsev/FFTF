@@ -37,11 +37,14 @@
  *  Copyright 2013 Samsung R&D Institute Russia
  */
 
-
 #include <fftf/api.h>
 #include <assert.h>
+#include <omp.h>
 #include <stdlib.h>
+#undef NOTNULL
 #include "src/backend.h"
+#undef NOTNULL
+#define NOTNULL(...)
 
 #define FFTF_BACKEND_ID_CHECK(id) do { \
   assert(id > FFTF_BACKEND_NONE && id < FFTF_COUNT_BACKENDS); \
@@ -72,8 +75,10 @@ FFTFBackend FFTFBackends[FFTF_COUNT_BACKENDS] = {
     { FFTF_BACKEND_FFTW3,   NULL},
 #endif
     { FFTF_BACKEND_LIBAV,   NULL},
+#ifndef __arm__
     { FFTF_BACKEND_IMKL,    NULL},
     { FFTF_BACKEND_IIPP,    NULL},
+#endif
 #ifdef CUDA
     { FFTF_BACKEND_CUFFT,    NULL},
 #endif
@@ -83,6 +88,8 @@ FFTFBackend FFTFBackends[FFTF_COUNT_BACKENDS] = {
 };
 
 FFTFBackendId FFTFCurrentBackendId = FFTF_BACKEND_NONE;
+
+int OpenMPThreadsNumber = 0;
 
 void fftf_cleanup() {
   free_backends(FFTFBackends);
@@ -202,4 +209,16 @@ void *fftf_malloc(size_t size) {
 void fftf_free(void *ptr) {
   fftf_check_backend();
   backend_free(FFTFCurrentBackendId, ptr);
+}
+
+int fftf_get_openmp_num_threads() {
+  if (OpenMPThreadsNumber < 1) {
+    OpenMPThreadsNumber = omp_get_max_threads();
+  }
+  return OpenMPThreadsNumber;
+}
+
+void fftf_set_openmp_num_threads(int value) {
+  assert(value > 0);
+  OpenMPThreadsNumber = value;
 }

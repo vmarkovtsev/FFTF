@@ -49,8 +49,10 @@
 #include "src/engine_kiss.h"
 #include "src/engine_ooura.h"
 #include "src/engine_libav.h"
+#ifndef __arm__
 #include "src/engine_ipp.h"
 #include "src/engine_mkl.h"
+#endif
 #ifdef GPL
 #include "src/engine_fftw3.h"
 #endif
@@ -103,6 +105,7 @@ Backend Backends[FFTF_COUNT_BACKENDS] = {
       malloc_libav, free_libav,
       NULL, NULL },
 
+#ifndef __arm__
     { FFTF_BACKEND_IMKL, "libmkl_rt.so", 1,
       load_mkl, unload_mkl,
       init_mkl, NULL, calc_mkl, NULL, destroy_mkl, NULL,
@@ -114,6 +117,7 @@ Backend Backends[FFTF_COUNT_BACKENDS] = {
       init_ipp, NULL, calc_ipp, NULL, destroy_ipp, NULL,
       malloc_ipp, free_ipp,
       NULL, NULL },
+#endif
 #ifdef CUDA
     { FFTF_BACKEND_CUFFT, "libcufft.so", 0,
       load_cufft, unload_cufft,
@@ -142,8 +146,10 @@ FFTFBackend BackendAdditionalLibs[FFTF_COUNT_BACKENDS] = {
     { FFTF_BACKEND_FFTW3,   NULL},
 #endif
     { FFTF_BACKEND_LIBAV,   NULL},
+#ifndef __arm__
     { FFTF_BACKEND_IMKL,    NULL},
     { FFTF_BACKEND_IIPP,    NULL},
+#endif
 #ifdef CUDA
     { FFTF_BACKEND_CUFFT,   NULL},
 #endif
@@ -370,7 +376,7 @@ void backend_calc(const FFTFInstance *instance) {
     FFTFSingleInstance si = FFTF_SINGLE_INSTANCE(instance, 0);
     Backends[instance->id].calc(Backends[instance->id].internalData, &si);
   } else {
-    #pragma omp parallel for
+    #pragma omp parallel for num_threads(fftf_get_openmp_num_threads())
     for (int i = 0; i < instance->batchSize; i++) {
       FFTFSingleInstance si = FFTF_SINGLE_INSTANCE(instance, i);
       Backends[instance->id].calc(Backends[instance->id].internalData, &si);

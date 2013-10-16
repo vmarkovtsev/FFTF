@@ -1,4 +1,4 @@
-TESTS = kiss ooura libav ipp mkl
+TESTS = kiss ooura libav default
 
 PARALLEL_SUBDIRS = $(EXTRA_TESTS)
 

@@ -25,8 +25,8 @@
   
  */
 
-/*! @file engine_mkl.c
- *  @brief Intel Math Kernel Library FFT wrapper functions implementation.
+/*! @file mkl.cc
+ *  @brief Tests for Intel MKL backend.
  *  @author Markovtsev Vadim <v.markovtsev@samsung.com>
  *  @version 1.0
  *
@@ -37,42 +37,16 @@
  *  Copyright 2013 Samsung R&D Institute Russia
  */
 
-#ifndef __arm__
 
-#include "src/engine_mkl.h"
-#include <stdlib.h>
-#include <string.h>
-#include "src/engine_fftw3.h"
+#define NAME IMKL
+#define BACKEND FFTF_BACKEND_IMKL
+#define DCT_TESTS
+#define INPLACE
+#if __SIZEOF_POINTER__ == 4
+#define LD_LIBRARY_PATH "/opt/intel/composer_xe_2013.2.146/mkl/lib/ia32"
+#else
+#define LD_LIBRARY_PATH "/opt/intel/composer_xe_2013.2.146/mkl/lib/intel64"
+#endif
 
-// I wish all backends were as easy to implement as this one!
+#include "tests/template.inc"
 
-int load_mkl(const char *libPath, void **engineInternalData) {
-  return load_fftw3(libPath,engineInternalData);
-}
-
-void unload_mkl(void *engineInternalData) {
-  unload_fftw3(engineInternalData);
-}
-
-void init_mkl(void *engineInternalData, FFTFSingleInstance *instance) {
-  init_fftw3(engineInternalData, instance);
-}
-
-void calc_mkl(void *engineInternalData,
-              const FFTFSingleInstance *instance) {
-  calc_fftw3(engineInternalData, instance);
-}
-
-void destroy_mkl(void *engineInternalData, FFTFSingleInstance *instance) {
-  destroy_fftw3(engineInternalData, instance);
-}
-
-void *malloc_mkl(void *engineInternalData, size_t size) {
-  return malloc_fftw3(engineInternalData, size);
-}
-
-void free_mkl(void *engineInternalData, void *ptr) {
-  free_fftw3(engineInternalData, ptr);
-}
-
-#endif  // #ifndef __arm__

@@ -2,6 +2,9 @@ dnl Process this file with autoconf to produce a configure script.
 
 AC_INIT(fftf, 1.0)
 m4_include([common.ac])
+AC_SUBST(INTERFACE_VERSION, [0])
+AC_SUBST(REVISION_NUMBER, [$(cd $srcdir && git rev-list HEAD --count)])
+AC_SUBST(AGE_NUMBER, [0])
 
 dnl Check whether to build GPL backends
 AC_ARG_WITH([gpl],
@@ -40,6 +43,7 @@ AM_COND_IF([TESTS], [
 	AC_CONFIG_FILES(tests/gpl/Makefile
                 	tests/opencl/Makefile
                 	tests/cuda/Makefile
+                        tests/intel/Makefile
                 	)
     AS_IF([test "x$with_gpl" == "xyes"], [
     	EXTRA_TESTS="$EXTRA_TESTS gpl"
@@ -51,6 +55,9 @@ AM_COND_IF([TESTS], [
     AS_IF([test "x$with_cuda" == "xyes"], [
     	EXTRA_TESTS="$EXTRA_TESTS cuda"
     ])
+    AS_IF([test ${host%%-*} != arm], [
+	    EXTRA_TESTS="$EXTRA_TESTS intel"
+	])
 ])
 AC_SUBST([EXTRA_TESTS])
 
