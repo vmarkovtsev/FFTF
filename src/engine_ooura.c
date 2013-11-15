@@ -85,7 +85,7 @@ void calc_ooura(void *engineInternalData UNUSED,
       break;
     case FFTF_TYPE_REAL:
       if (instance->direction == FFTF_DIRECTION_BACKWARD) {
-        instance->output[1] = instance->output[instance->length];
+        instance->output[1] = instance->input[instance->length];
       }
       rdft(instance->length, -instance->direction,
            instance->output, aux->ip, aux->w);

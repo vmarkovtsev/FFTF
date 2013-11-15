@@ -144,6 +144,8 @@ void init_libav(void *engineInternalData, FFTFSingleInstance *instance) {
   assert((uintptr_t)(instance->output) % 32 == 0 &&
          "output buffer should be aligned to 32 bytes (use fftf_malloc())");
   int n = log2int(instance->length);
+  assert(n < 18 && "libav FFT does not support lengths greater than 131072 "
+         "(2^17)");
 
   Libav *libav = (Libav *)engineInternalData;
   switch (instance->type) {
@@ -181,7 +183,7 @@ void calc_libav(void *engineInternalData,
       break;
     case FFTF_TYPE_REAL:
       if (instance->direction == FFTF_DIRECTION_BACKWARD) {
-        instance->output[1] = instance->output[instance->length];
+        instance->output[1] = instance->input[instance->length];
       }
       libav->av_rdft_calc((RDFTContext *)instance->internalData,
                           instance->output);
