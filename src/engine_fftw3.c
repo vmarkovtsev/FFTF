@@ -77,12 +77,13 @@ typedef struct {
   fftwf_free_func fftwf_free;
 } LibFFTW3;
 
-#define dlopen_fftw3(lib, path) dlopen_checked(&lib, libHandle, path)
+#define dlopen_fftw3(lib, path, trial) dlopen_checked(&lib, libHandle, path, \
+                                                      trial)
 #define dlsym_fftw3(lib, symbol) dlsym_checked(&lib, libHandle, symbol)
 
-int load_fftw3(const char *libPath, void **engineInternalData) {
+int load_fftw3(const char *libPath, void **engineInternalData, int trial) {
   LibFFTW3 libfftw3;
-  dlopen_fftw3(libfftw3, libPath);
+  dlopen_fftw3(libfftw3, libPath, trial);
 
   dlsym_fftw3(libfftw3, fftwf_plan_dft);
   dlsym_fftw3(libfftw3, fftwf_plan_dft_r2c);

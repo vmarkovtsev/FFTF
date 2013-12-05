@@ -39,7 +39,7 @@
 
 #include <fftf/api.h>
 #include <assert.h>
-#include <omp.h>
+#include "src/safe_omp.h"
 #include <stdlib.h>
 #undef NOTNULL
 #include "src/backend.h"
@@ -57,8 +57,10 @@ int FFTFBackendPriorities[FFTF_COUNT_BACKENDS] = {
     20,   // FFTF_BACKEND_FFTW3
 #endif
     30,   // FFTF_BACKEND_LIBAV
+#ifndef __arm__
     40,   // FFTF_BACKEND_IMKL
     41,   // FFTF_BACKEND_IIPP
+#endif
 #ifdef CUDA
     50,  // FFTF_BACKEND_CUFFT
 #endif
@@ -83,7 +85,8 @@ FFTFBackend FFTFBackends[FFTF_COUNT_BACKENDS] = {
     { FFTF_BACKEND_CUFFT,    NULL},
 #endif
 #ifdef OPENCL
-    { FFTF_BACKEND_APPML,   NULL}
+    { FFTF_BACKEND_APPML,   NULL},
+    { FFTF_BACKEND_VIENNACL,   NULL}
 #endif
 };
 
@@ -105,7 +108,8 @@ FFTFBackendId fftf_current_backend(void) {
   if (FFTFCurrentBackendId == FFTF_BACKEND_NONE) {
     int highestPriority = FFTFBackendPriorities[FFTF_BACKEND_NONE + 1];
     for (int i = FFTF_BACKEND_NONE + 1; i < FFTF_COUNT_BACKENDS; i++) {
-       if (FFTFBackends[i].path != NULL &&
+       if ((FFTFBackends[i].path != NULL ||
+           FFTFBackends[i].id <= FFTF_BACKEND_OOURA) &&
            FFTFBackendPriorities[i] >= highestPriority) {
          FFTFCurrentBackendId = i;
          highestPriority = FFTFBackendPriorities[i];
@@ -116,16 +120,44 @@ FFTFBackendId fftf_current_backend(void) {
 }
 
 FFTF_SET_BACKEND_RESULT fftf_set_backend(FFTFBackendId id) {
+  if (id == FFTF_BACKEND_NONE) {
+    FFTFCurrentBackendId = FFTF_BACKEND_NONE;
+    return fftf_current_backend();
+  }
   FFTF_BACKEND_ID_CHECK(id);
   if (FFTFBackends[id].path != NULL) {
     FFTFCurrentBackendId = id;
     return FFTF_SET_BACKEND_SUCCESS;
   }
-  int result = load_backend(&FFTFBackends[id]);
+  int result = load_backend(&FFTFBackends[id], 0);
   if (result == FFTF_SET_BACKEND_SUCCESS) {
     FFTFCurrentBackendId = id;
   }
   return result;
+}
+
+void fftf_ensure_is_supported(FFTFType type, size_t length) {
+  FFTFBackendId bid = fftf_current_backend();
+  if (type == FFTF_TYPE_DCT) {
+    switch (type) {
+    #ifdef CUDA
+      case FFTF_BACKEND_CUFFT:
+#endif
+#ifdef OPENCL
+      case FFTF_BACKEND_APPML:
+      case FFTF_BACKEND_VIENNACL:
+#endif
+        fftf_set_backend(FFTF_BACKEND_LIBAV);
+        break;
+      default:
+        break;
+    }
+  }
+  if (!is_power_of_two(length)) {
+    if (bid == FFTF_BACKEND_OOURA || bid == FFTF_BACKEND_LIBAV) {
+      fftf_set_backend(FFTF_BACKEND_KISS);
+    }
+  }
 }
 
 int fftf_get_backend_priority(FFTFBackendId id) {

@@ -44,7 +44,6 @@
 #include <string.h>
 #include <strings.h>
 #include <sys/types.h>
-#include <sys/stat.h>
 #include <unistd.h>
 #include "src/engine_kiss.h"
 #include "src/engine_ooura.h"
@@ -172,16 +171,11 @@ static void unload_backend(FFTFBackend *lib) {
   pthread_mutex_unlock(&InstancesMutex);
 }
 
-static int load_backend_internal(FFTFBackendId id, const char *path) {
+static int load_backend_internal(FFTFBackendId id, const char *path,
+                                 int trial) {
   assert(Backends[id].load != NULL);
-  if (path != NULL && path[0] == '/') {
-    struct stat check;
-    if (stat(path, &check)) {
-      return 0;
-    }
-  }
   pthread_mutex_lock(&InstancesMutex);
-  int res = Backends[id].load(path, &Backends[id].internalData);
+  int res = Backends[id].load(path, &Backends[id].internalData, trial);
   if (res) {
     Backends[id].libraryCurrentPath = path;
   }
@@ -189,7 +183,7 @@ static int load_backend_internal(FFTFBackendId id, const char *path) {
   return res;
 }
 
-FFTF_SET_BACKEND_RESULT load_backend(FFTFBackend *lib) {
+FFTF_SET_BACKEND_RESULT load_backend(FFTFBackend *lib, int trial) {
   assert(lib != NULL);
 
   // These are built-in
@@ -207,7 +201,8 @@ FFTF_SET_BACKEND_RESULT load_backend(FFTFBackend *lib) {
   int loaded = 0;
   lib->path = NULL;
   if (BackendAdditionalLibs[lib->id].path != NULL) {
-    if (load_backend_internal(lib->id, BackendAdditionalLibs[lib->id].path)) {
+    if (load_backend_internal(lib->id, BackendAdditionalLibs[lib->id].path,
+                              trial)) {
       loaded = 1;
     }
   }
@@ -217,14 +212,15 @@ FFTF_SET_BACKEND_RESULT load_backend(FFTFBackend *lib) {
                    strlen(Backends[lib->id].libraryDefaultPath) + 2];
       snprintf(libpath, sizeof(libpath), "%s/%s", BackendAdditionalPaths[i],
                Backends[lib->id].libraryDefaultPath);
-      if (load_backend_internal(lib->id, libpath)) {
+      if (load_backend_internal(lib->id, libpath, trial)) {
         loaded = 1;
         break;
       }
     }
   }
   if (!loaded) {
-    if (!load_backend_internal(lib->id, Backends[lib->id].libraryDefaultPath)) {
+    if (!load_backend_internal(lib->id, Backends[lib->id].libraryDefaultPath,
+                               trial)) {
       if (BackendAdditionalPaths == NULL &&
           BackendAdditionalLibs[lib->id].path == NULL) {
         void *handle = dlopen(Backends[lib->id].libraryDefaultPath, RTLD_NOW);
@@ -286,7 +282,7 @@ void scan_backends(FFTFBackend *libs,
   for (int i = FFTF_BACKEND_NONE + 1; i < FFTF_COUNT_BACKENDS; i++) {
     // TODO: implement all backends and remove this check
     if (Backends[i].load == NULL) continue;
-    load_backend(&libs[i]);
+    load_backend(&libs[i], 1);
   }
 }
 

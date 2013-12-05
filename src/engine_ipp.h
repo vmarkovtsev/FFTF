@@ -42,7 +42,7 @@
 
 #include "src/backend.h"
 
-int load_ipp(const char *libPath, void **engineInternalData);
+int load_ipp(const char *libPath, void **engineInternalData, int trial);
 
 void unload_ipp(void *engineInternalData);
 

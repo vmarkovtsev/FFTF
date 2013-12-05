@@ -80,7 +80,8 @@ typedef struct {
 struct Backend;
 
 typedef int (*load_backend_func)(const char *libPath,
-                                 void **engineInternalData);
+                                 void **engineInternalData,
+                                 int trial);
 
 typedef void (*unload_backend_func)(void *engineInternalData);
 
@@ -132,7 +133,7 @@ typedef struct Backend {
   void *internalData;
 } Backend;
 
-FFTF_SET_BACKEND_RESULT load_backend(FFTFBackend *lib);
+FFTF_SET_BACKEND_RESULT load_backend(FFTFBackend *lib, int trial);
 
 void scan_backends(FFTFBackend *libs, const char *const *additionalPaths,
                    const FFTFBackend *additionalLibs);
@@ -155,10 +156,12 @@ void backend_free(FFTFBackendId id, void *ptr);
 
 ///////////////////////////////////////////////////////////////////////////////
 
-#define dlopen_checked(lib, handle, path) do { \
+#define dlopen_checked(lib, handle, path, trial) do { \
   (lib)->handle = dlopen(path, RTLD_LAZY); \
   if ((lib)->handle == NULL) { \
-    fprintf(stderr, "dlopen(%s) failed: %s.\n", path, dlerror()); \
+    if (!trial) { \
+      fprintf(stderr, "dlopen(%s) failed: %s.\n", path, dlerror()); \
+    } \
     return 0; \
   } \
 } while (0)

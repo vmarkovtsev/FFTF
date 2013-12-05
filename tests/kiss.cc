@@ -40,5 +40,6 @@
 #define NAME Kiss
 #define BACKEND FFTF_BACKEND_KISS
 #define INPLACE
+#define DCT_TESTS
 
 #include "tests/template.inc"

@@ -224,10 +224,29 @@ typedef enum {
   FFTF_SET_BACKEND_FAILED_TO_LOAD
 } FFTF_SET_BACKEND_RESULT;
 
+/// @brief FFTF transform kind.
+typedef enum {
+  /// @brief FFT from complex numbers space to complex numbers space.
+  /// @note The layout of complex numbers in FFTF arrays is conventional
+  /// ([real part][imaginary part]) and is compatible with stored structs
+  /// like typedef struct { float reall float imag; } Complex;
+  FFTF_TYPE_COMPLEX,
+  /// @brief FFT from real numbers space to complex numbers space
+  /// (and vice versa).
+  FFTF_TYPE_REAL,
+  /// @brief Discrete Cosine Transform (real to real).
+  FFTF_TYPE_DCT
+} FFTFType;
+
 /// @brief Tries to set the current backend. All previously initialized FFTF
 /// instances remain bound to their own backends.
 /// @return The result of the attempt.
 FFTF_SET_BACKEND_RESULT fftf_set_backend(FFTFBackendId id);
+
+/// @brief Selects the backend which supports the given DFT/DCT length.
+/// This is useful in case of backends which operate with inputs of length of
+/// a power of two only.
+void fftf_ensure_is_supported(FFTFType type, size_t length);
 
 /// @brief This is the maximal initial value of priority of any of
 /// the supported backends.
@@ -254,20 +273,6 @@ typedef enum {
   /// @brief Calculate the inverse transform.
   FFTF_DIRECTION_BACKWARD = 1
 } FFTFDirection;
-
-/// @brief FFTF transform kind.
-typedef enum {
-  /// @brief FFT from complex numbers space to complex numbers space.
-  /// @note The layout of complex numbers in FFTF arrays is conventional
-  /// ([real part][imaginary part]) and is compatible with stored structs
-  /// like typedef struct { float reall float imag; } Complex;
-  FFTF_TYPE_COMPLEX,
-  /// @brief FFT from real numbers space to complex numbers space
-  /// (and vice versa).
-  FFTF_TYPE_REAL,
-  /// @brief Discrete Cosine Transform (real to real).
-  FFTF_TYPE_DCT
-} FFTFType;
 
 /// @brief The dimension of FFTF transform.
 /// @note Some backends do not support higher dimensions (2D and 3D).

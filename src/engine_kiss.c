@@ -39,9 +39,16 @@
 
 #include "src/engine_kiss.h"
 #include <assert.h>
+#include <math.h>
 #include "src/kiss/kiss_fft.h"
 #include "src/kiss/kiss_fftr.h"
 #include "src/kiss/kiss_fftnd.h"
+
+typedef struct {
+  kiss_fftr_cfg cfg;
+  float *input;
+  float *output;
+} KissDCTInternalData;
 
 void init_kiss(void *engineInternalData UNUSED,
                FFTFSingleInstance *instance) {
@@ -68,7 +75,16 @@ void init_kiss(void *engineInternalData UNUSED,
           NULL, NULL);
       break;
     case FFTF_TYPE_DCT:
-      assert(0 && "DCT is not supported by this backend");
+      assert(instance->dimension == FFTF_DIMENSION_1D &&
+             "Higher dimensions are not implemented");
+      KissDCTInternalData *dctd = malloc(sizeof(KissDCTInternalData));
+      dctd->cfg = kiss_fftr_alloc(
+          instance->length * 2,
+          instance->direction == FFTF_DIRECTION_BACKWARD,
+          NULL, NULL);
+      dctd->input = fftf_malloc((instance->length * 2 + 2) * sizeof(float));
+      dctd->output = fftf_malloc((instance->length * 2 + 2) * sizeof(float));
+      instance->internalData = dctd;
       break;
   }
 }
@@ -99,14 +115,54 @@ void calc_kiss(void *engineInternalData UNUSED,
       }
       break;
     }
-    default:
-     assert("Not supported");
-     break;
+    case FFTF_TYPE_DCT: {
+      KissDCTInternalData *dctd = (KissDCTInternalData *)instance->internalData;
+      int length = instance->length;
+      if (instance->direction == FFTF_DIRECTION_FORWARD) {
+        memcpy(dctd->input, instance->input, length * sizeof(float));
+        for (int i = 0; i < length; i++) {
+          dctd->input[length + i] = instance->input[length - i - 1];
+        }
+        kiss_fftr(dctd->cfg, (const kiss_fft_scalar *)dctd->input,
+                  (kiss_fft_cpx *)dctd->output);
+        for (int i = 0; i < length; i++) {
+          float yre = dctd->output[i * 2];
+          float yim = dctd->output[i * 2 + 1];
+          float tmp = 3.141592f * i / (2 * length);
+          float wre = cosf(tmp);
+          float wim = -sinf(tmp);
+          instance->output[i] = wre * yre - yim * wim;
+        }
+      } else {
+        for (int i = 0; i < length; i++) {
+          float tmp = 3.141592f * i / (2 * length);
+          float wre = cosf(tmp);
+          float wim = sinf(tmp);
+          float yre = wre * instance->input[i];
+          float yim = wim * instance->input[i];
+          dctd->input[i * 2] = yre;
+          dctd->input[i * 2 + 1] = yim;
+        }
+        dctd->input[length] = dctd->input[length + 1] = 0;
+        kiss_fftri(dctd->cfg, (const kiss_fft_cpx *)dctd->input,
+                   (kiss_fft_scalar *)dctd->output);
+        memcpy(instance->output, dctd->output, length * sizeof(float));
+      }
+      break;
+    }
   }
 }
 
 void destroy_kiss(void *engineInternalData UNUSED,
                   FFTFSingleInstance *instance) {
+  if (instance->type == FFTF_TYPE_DCT) {
+    KissDCTInternalData *dctd = (KissDCTInternalData *)instance->internalData;
+    free(dctd->input);
+    free(dctd->output);
+    kiss_fft_free(dctd->cfg);
+    free(dctd);
+    return;
+  }
   if (instance->dimension == FFTF_DIMENSION_1D) {
     kiss_fft_free(instance->internalData);
   } else {

@@ -42,7 +42,7 @@
 
 #include "src/backend.h"
 
-int load_mkl(const char *libPath, void **engineInternalData);
+int load_mkl(const char *libPath, void **engineInternalData, int trial);
 
 void unload_mkl(void *engineInternalData);
 

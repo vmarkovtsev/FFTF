@@ -46,8 +46,8 @@
 
 // I wish all backends were as easy to implement as this one!
 
-int load_mkl(const char *libPath, void **engineInternalData) {
-  return load_fftw3(libPath,engineInternalData);
+int load_mkl(const char *libPath, void **engineInternalData, int trial) {
+  return load_fftw3(libPath, engineInternalData, trial);
 }
 
 void unload_mkl(void *engineInternalData) {

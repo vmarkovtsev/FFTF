@@ -104,12 +104,13 @@ typedef struct {
   av_free_func av_free;
 } Libav;
 
-#define dlopen_libav(lib, path) dlopen_checked(&lib, libHandle, path)
+#define dlopen_libav(lib, path, trial) dlopen_checked(&lib, libHandle, path, \
+                                                      trial)
 #define dlsym_libav(lib, symbol) dlsym_checked(&lib, libHandle, symbol)
 
-int load_libav(const char *libPath, void **engineInternalData) {
+int load_libav(const char *libPath, void **engineInternalData, int trial) {
   Libav libav;
-  dlopen_libav(libav, libPath);
+  dlopen_libav(libav, libPath, trial);
 
   dlsym_libav(libav, av_fft_init);
   dlsym_libav(libav, av_fft_permute);

@@ -42,7 +42,7 @@
 
 #include "src/backend.h"
 
-int load_libav(const char *libPath, void **engineInternalData);
+int load_libav(const char *libPath, void **engineInternalData, int trial);
 
 void unload_libav(void *engineInternalData);
 

@@ -42,7 +42,7 @@
 
 #include "src/backend.h"
 
-int load_fftw3(const char *libPath, void **engineInternalData);
+int load_fftw3(const char *libPath, void **engineInternalData, int trial);
 
 void unload_fftw3(void *engineInternalData);
 

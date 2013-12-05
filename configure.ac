@@ -43,7 +43,7 @@ AM_COND_IF([TESTS], [
 	AC_CONFIG_FILES(tests/gpl/Makefile
                 	tests/opencl/Makefile
                 	tests/cuda/Makefile
-                        tests/intel/Makefile
+                	tests/intel/Makefile
                 	)
     AS_IF([test "x$with_gpl" == "xyes"], [
     	EXTRA_TESTS="$EXTRA_TESTS gpl"
@@ -56,7 +56,7 @@ AM_COND_IF([TESTS], [
     	EXTRA_TESTS="$EXTRA_TESTS cuda"
     ])
     AS_IF([test ${host%%-*} != arm], [
-	    EXTRA_TESTS="$EXTRA_TESTS intel"
+	    EXTRA_TESTS="$EXTRA_TESTS intel"    
 	])
 ])
 AC_SUBST([EXTRA_TESTS])

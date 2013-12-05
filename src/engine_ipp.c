@@ -229,7 +229,7 @@ typedef struct {
   Ipp8u *buffer;
 } IppInternalData;
 
-int load_ipp(const char *libPath, void **engineInternalData) {
+int load_ipp(const char *libPath, void **engineInternalData, int trial) {
   LibIPP ipp;
   int libPathLength = strlen(libPath);
   char openMP_path[libPathLength + 100];
@@ -260,9 +260,9 @@ int load_ipp(const char *libPath, void **engineInternalData) {
     snprintf(core_path, sizeof(core_path), "libippcore.so");
   }
 
-  dlopen_checked(&ipp, libHandleOpenMP, openMP_path);
-  dlopen_checked(&ipp, libHandleCore, core_path);
-  dlopen_checked(&ipp, libHandleDSP, libPath);
+  dlopen_checked(&ipp, libHandleOpenMP, openMP_path, trial);
+  dlopen_checked(&ipp, libHandleCore, core_path, trial);
+  dlopen_checked(&ipp, libHandleDSP, libPath, trial);
 
   dlsym_ipp_core(ipp, ippMalloc);
   dlsym_ipp_core(ipp, ippFree);

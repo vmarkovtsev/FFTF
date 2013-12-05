@@ -64,6 +64,18 @@ TEST(NAME, ComplexForward) {
   ASSERT_EQ(kVerificationResultOk, te.Verify());
 }
 
+TEST(NAME, ComplexForwardLooong) {
+  ASSERT_FALSE(fatalError);
+  ASSERT_TRUE(set_backend(BACKEND));
+  TestEnv te(FFTF_DIRECTION_FORWARD, FFTF_TYPE_COMPLEX, false, 1, 65536);
+  auto handle = fftf_init(FFTF_TYPE_COMPLEX, FFTF_DIRECTION_FORWARD,
+                          FFTF_DIMENSION_1D, te.N(), FFTF_NO_OPTIONS,
+                          te.input(), te.output());
+  fftf_calc(handle);
+  fftf_destroy(handle);
+  ASSERT_EQ(kVerificationResultOk, te.Verify());
+}
+
 TEST(NAME, ComplexBackward) {
   ASSERT_FALSE(fatalError);
   ASSERT_TRUE(set_backend(BACKEND));
@@ -186,6 +198,7 @@ TEST(NAME, RealForwardBatchInplace) {
 #endif
 
 #ifndef DCT_TESTS
+#ifndef NO_SET_BACKEND
 TEST(NAME, DCTAssertion) {
   ASSERT_FALSE(fatalError);
   ASSERT_TRUE(set_backend(BACKEND));
@@ -205,6 +218,7 @@ TEST(NAME, DCTAssertion) {
     assert(handle != nullptr);
   }, ".*Assertion.*DCT is not supported by this backend.*");
 }
+#endif
 #else
 TEST(NAME, DCTForward) {
   ASSERT_FALSE(fatalError);

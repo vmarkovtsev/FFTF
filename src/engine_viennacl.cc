@@ -40,8 +40,12 @@
 #ifdef OPENCL
 
 #include "src/engine_viennacl.h"
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wold-style-cast"
 #include <viennacl/fft.hpp>
+#pragma GCC diagnostic pop
 
+#if 0
 int test_main()
 {
   // Change this type definition to double if your gpu supports that
@@ -88,6 +92,7 @@ int test_main()
 
   return EXIT_SUCCESS;
 }
+#endif
 
 extern "C" {
 
