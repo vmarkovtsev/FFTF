@@ -42,7 +42,7 @@
 
 #include "src/backend.h"
 
-int load_appml(const char *libPath, void **engineInternalData);
+int load_appml(const char *libPath, void **engineInternalData, int trial);
 
 void unload_appml(void *engineInternalData);
 

@@ -59,12 +59,13 @@ typedef struct {
   clAmdFftEnqueueTransformFunc clAmdFftEnqueueTransform;
 } LibAPPML;
 
-#define dlopen_appml(lib, path) dlopen_checked(&lib, libHandle, path)
+#define dlopen_appml(lib, path, trial) dlopen_checked(&lib, libHandle, path, \
+                                                      trial)
 #define dlsym_appml(lib, symbol) dlsym_checked(&lib, libHandle, symbol)
 
-int load_appml(const char *libPath, void **engineInternalData) {
+int load_appml(const char *libPath, void **engineInternalData, int trial) {
   LibAPPML libappml;
-  dlopen_appml(libappml, libPath);
+  dlopen_appml(libappml, libPath, trial);
 
   dlsym_appml(libappml, clAmdFftSetup);
   dlsym_appml(libappml, clAmdFftTeardown);

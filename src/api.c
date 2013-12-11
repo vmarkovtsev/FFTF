@@ -139,8 +139,8 @@ FFTF_SET_BACKEND_RESULT fftf_set_backend(FFTFBackendId id) {
 void fftf_ensure_is_supported(FFTFType type, size_t length) {
   FFTFBackendId bid = fftf_current_backend();
   if (type == FFTF_TYPE_DCT) {
-    switch (type) {
-    #ifdef CUDA
+    switch (bid) {
+#ifdef CUDA
       case FFTF_BACKEND_CUFFT:
 #endif
 #ifdef OPENCL

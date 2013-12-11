@@ -204,7 +204,7 @@ TEST(NAME, DCTAssertion) {
   ASSERT_TRUE(set_backend(BACKEND));
   TestEnv te(FFTF_DIRECTION_FORWARD, FFTF_TYPE_DCT);
   // There are problems with stderr redirection otherwise
-  // ::testing::FLAGS_gtest_death_test_style = "threadsafe";
+  ::testing::FLAGS_gtest_death_test_style = "threadsafe";
   EXPECT_DEATH({
     auto handle = fftf_init(FFTF_TYPE_DCT, FFTF_DIRECTION_FORWARD,
                             FFTF_DIMENSION_1D, te.N(), FFTF_NO_OPTIONS,

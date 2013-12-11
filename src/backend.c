@@ -187,7 +187,11 @@ FFTF_SET_BACKEND_RESULT load_backend(FFTFBackend *lib, int trial) {
   assert(lib != NULL);
 
   // These are built-in
-  if (lib->id == FFTF_BACKEND_KISS || lib->id == FFTF_BACKEND_OOURA) {
+  if (lib->id == FFTF_BACKEND_KISS || lib->id == FFTF_BACKEND_OOURA
+#ifdef OPENCL
+      || lib->id == FFTF_BACKEND_VIENNACL
+#endif
+      ) {
     return FFTF_SET_BACKEND_SUCCESS;
   }
 

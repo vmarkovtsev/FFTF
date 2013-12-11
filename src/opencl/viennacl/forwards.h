@@ -327,7 +327,7 @@ namespace viennacl
     {
       static void apply(const MATRIXTYPE & mat, unsigned int & row, unsigned int & col)
       {
-          typedef typename MATRIXTYPE::ERROR_SPECIALIZATION_FOR_THIS_MATRIX_TYPE_MISSING          ErrorIndicator;
+          //typedef typename MATRIXTYPE::ERROR_SPECIALIZATION_FOR_THIS_MATRIX_TYPE_MISSING          ErrorIndicator;
       }
     };
   }
